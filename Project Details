@@ -1,0 +1,62 @@
+Travel_ZZZ
+Bus Booking Application
+A modern, responsive web application for booking bus tickets built with Python and Flask. This application allows users to search for buses between cities, select their preferred seats, and proceed with booking and payment simulation.
+
+Features
+Search Buses: Users can search for available buses between various cities (e.g., Bangalore, Mumbai, Delhi, etc.) on specific dates.
+Dynamic Seat Selection: Interactive seat layout with randomized pre-booked seat generation (for demonstration).
+Booking Flow: Users can select seats and generate a booking summary.
+Payment Simulation: A mock payment gateway that confirms the booking and generates a unique Booking ID.
+Session Management: Temporary storage of booking details using Flask sessions.
+Tech Stack
+Backend: Python, Flask
+Frontend: HTML5, CSS3, Jinja2 Templates
+Data Storage: In-memory Python data structures (Lists & Dictionaries) for storing Bus and Seat data
+Project Structure
+bus-booking/
+├── app.py                   # Main Flask application file containing routes and logic
+├── requirements.txt         # Python package dependencies
+├── static/                  # Static assets
+│   └── css/
+│       └── style.css        # Stylesheets for the application
+└── templates/               # HTML Jinja2 templates
+    ├── base.html            # Base template with common layout (navbar, footer)
+    ├── index.html           # Home page with search form
+    ├── search_results.html  # Display list of available buses
+    ├── seat_selection.html  # Interactive seat mapping
+    ├── booking_confirmation.html # Booking summary before payment
+    └── payment_success.html # Final payment completion and ticket details
+Setup and Installation
+Prerequisites
+Python 3.7+ installed on your system.
+pip (Python package manager).
+Installation Steps
+Clone or Download the Project Repository Navigate to the project directory in your terminal:
+cd bus-booking
+Create a Virtual Environment (Recommended)
+python -m venv .venv
+Activate the Virtual Environment
+On Windows:
+.venv\Scripts\activate
+On Mac/Linux:
+source .venv/bin/activate
+Install Dependencies Install the required Python packages (primarily Flask):
+pip install -r requirements.txt
+If requirements.txt is missing, you can run pip install flask directly.
+
+Running the Application
+Ensure your virtual environment is activated.
+Start the Flask server:
+python app.py
+Open your web browser and navigate to: http://127.0.0.1:5000
+Application Routes
+GET / : Renders the home page with the bus search form.
+POST /search : Processes the search query and displays available buses for the selected route.
+GET /select_seats/<int:bus_id> : Displays the seat layout for a specific bus.
+POST /booking : Handles seat selection and calculates the total price. Details are temporarily saved in the session.
+POST /payment : Simulates payment processing and provides the final booking confirmation ticket.
+Future Enhancements
+Integration with a real database (SQLite, PostgreSQL, MySQL) replacing in-memory data.
+User authentication and authorization (Sign up, Login, View previous bookings).
+Integration with a real payment gateway (e.g., Stripe, PayPal, Razorpay).
+Email or SMS notifications for confirmed tickets.
