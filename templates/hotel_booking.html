@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block title %}Book {{ hotel.name }} | NexusTransit{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="glass-card-static p-4 p-md-5 animate-fade-in-up">
+
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+          <div>
+            <h2 class="fw-bold mb-1">{{ hotel.name }}</h2>
+            <div class="hotel-stars mb-2">
+              {% for s in range(hotel.stars) %}
+              <i class="fas fa-star text-warning"></i>
+              {% endfor %}
+              <span class="ms-2 text-secondary">{{ hotel.stars }}-Star Hotel</span>
+            </div>
+            <p class="text-secondary mb-0">
+              <i class="fas fa-location-dot me-1"></i>{{ hotel.destination }} • {{ hotel.distance_km }} km from center
+            </p>
+          </div>
+          <div class="text-end">
+            <span class="badge rounded-pill bg-accent-subtle border-accent px-3 py-2">
+              <i class="fas fa-star text-warning me-1"></i>{{ hotel.rating }}
+              <small class="text-secondary">({{ hotel.reviews_count }} reviews)</small>
+            </span>
+          </div>
+        </div>
+
+        <div class="row g-4">
+          <!-- Hotel Details -->
+          <div class="col-lg-7">
+            <!-- Image -->
+            <div class="mb-4" style="height: 250px; border-radius: var(--radius-lg); overflow: hidden;
+              background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(14,165,233,0.1));
+              display: flex; align-items: center; justify-content: center;">
+              <i class="fas fa-hotel fa-5x" style="color: rgba(255,255,255,0.08);"></i>
+            </div>
+
+            <!-- Amenities -->
+            <h5 class="fw-bold mb-3"><i class="fas fa-concierge-bell me-2 text-accent"></i>Amenities</h5>
+            <div class="row g-2 mb-4">
+              {% for amenity in hotel.amenities %}
+              <div class="col-6 col-md-4">
+                <div class="d-flex align-items-center gap-2 p-2"
+                  style="background: rgba(255,255,255,0.03); border-radius: 10px;">
+                  <i class="fas fa-check-circle text-success" style="font-size: 0.8rem;"></i>
+                  <span style="font-size: 0.9rem;">{{ amenity }}</span>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+
+            <!-- Room Types -->
+            <h5 class="fw-bold mb-3"><i class="fas fa-bed me-2 text-accent-2"></i>Available Rooms</h5>
+            <div class="d-flex flex-column gap-2 mb-4">
+              {% for room in hotel.room_types %}
+              <div class="d-flex justify-content-between align-items-center p-3"
+                style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px;">
+                <div>
+                  <span class="fw-bold">{{ room }}</span>
+                  <small class="text-secondary d-block">Max 2 adults, AC, WiFi included</small>
+                </div>
+                <span class="fw-bold text-accent">₹{{ hotel.price_per_night }}</span>
+              </div>
+              {% endfor %}
+            </div>
+
+            <!-- Cancellation -->
+            <div class="p-3"
+              style="background: rgba({% if 'Free' in hotel.cancellation %}16,185,129{% else %}245,158,11{% endif %},0.05); border-radius: 12px;">
+              <i
+                class="fas fa-info-circle me-2 {% if 'Free' in hotel.cancellation %}text-success{% else %}text-warning{% endif %}"></i>
+              <strong>{{ hotel.cancellation }}</strong>
+              {% if 'Free' in hotel.cancellation %}
+              <small class="text-secondary d-block mt-1">Full refund if cancelled 24 hours before check-in.</small>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Booking Summary -->
+          <div class="col-lg-5">
+            <div class="glass-card-static p-4" style="position: sticky; top: 100px;">
+              <h5 class="fw-bold mb-3">Booking Summary</h5>
+
+              <div class="d-flex justify-content-between mb-2 pb-2"
+                style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <span class="text-secondary">Check-in</span>
+                <span class="fw-bold">{{ hotel.checkin }}</span>
+              </div>
+              <div class="d-flex justify-content-between mb-2 pb-2"
+                style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <span class="text-secondary">Check-out</span>
+                <span class="fw-bold">{{ hotel.checkout }}</span>
+              </div>
+              <div class="d-flex justify-content-between mb-2 pb-2"
+                style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <span class="text-secondary">Rooms</span>
+                <span class="fw-bold">{{ hotel.rooms }}</span>
+              </div>
+              <div class="d-flex justify-content-between mb-2 pb-2"
+                style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <span class="text-secondary">Guests</span>
+                <span class="fw-bold">{{ hotel.guests }}</span>
+              </div>
+              <div class="d-flex justify-content-between mb-2 pb-2"
+                style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <span class="text-secondary">Room Type</span>
+                <span class="fw-bold">{{ room_type }}</span>
+              </div>
+              <div class="d-flex justify-content-between mb-2 pb-2"
+                style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <span class="text-secondary">Price/Night</span>
+                <span class="fw-bold">₹{{ hotel.price_per_night }}</span>
+              </div>
+              <div class="d-flex justify-content-between mb-4 align-items-end">
+                <span class="h5 mb-0">Total</span>
+                <span class="h3 mb-0 gradient-text fw-bold">₹{{ hotel.total_price }}</span>
+              </div>
+
+              <form action="{{ url_for('confirm_hotel') }}" method="POST">
+                <input type="hidden" name="hotel_id" value="{{ hotel.id }}">
+                <input type="hidden" name="room_type" value="{{ room_type }}">
+
+                <div class="mb-3">
+                  <label class="mb-1" style="text-transform: none; font-size: 0.9rem;"><i class="fas fa-user me-1"></i>
+                    Guest Name</label>
+                  <input type="text" class="form-control" name="guest_name" value="{{ session.get('user', '') }}"
+                    required>
+                </div>
+
+                <h6 class="mb-2">Payment Method</h6>
+                <div class="d-flex flex-column gap-2 mb-3">
+                  <label class="d-flex align-items-center gap-3 p-2 rounded-3"
+                    style="background: rgba(255,255,255,0.03); cursor: pointer;">
+                    <input type="radio" name="payment_method" value="UPI" checked class="form-check-input">
+                    <i class="fas fa-qrcode text-accent"></i>
+                    <span>UPI</span>
+                  </label>
+                  <label class="d-flex align-items-center gap-3 p-2 rounded-3"
+                    style="background: rgba(255,255,255,0.03); cursor: pointer;">
+                    <input type="radio" name="payment_method" value="Card" class="form-check-input">
+                    <i class="fas fa-credit-card text-accent-2"></i>
+                    <span>Credit/Debit Card</span>
+                  </label>
+                  <label class="d-flex align-items-center gap-3 p-2 rounded-3"
+                    style="background: rgba(255,255,255,0.03); cursor: pointer;">
+                    <input type="radio" name="payment_method" value="Net Banking" class="form-check-input">
+                    <i class="fas fa-building-columns" style="color: var(--accent-tertiary);"></i>
+                    <span>Net Banking</span>
+                  </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-glow w-100 py-3 fw-bold">
+                  <i class="fas fa-lock me-2"></i>Pay & Book Hotel
+                </button>
+                <p class="text-center text-secondary small mt-2">
+                  <i class="fas fa-shield-alt me-1"></i>Secure payment with 256-bit encryption
+                </p>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

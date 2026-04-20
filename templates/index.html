@@ -1,0 +1,394 @@
+{% extends 'base.html' %}
+
+{% block title %}NexusTransit | Buses, Flights, Hotels & Cabs{% endblock %}
+
+{% block content %}
+<div class="container animate-fade-in-up">
+
+  <!-- Hero Section -->
+  <div class="hero-section">
+    <!-- Floating travel icons -->
+    <i class="fas fa-plane floating-icon" style="top: 10%; left: 8%; animation-delay: 0s; font-size: 2.5rem;"></i>
+    <i class="fas fa-hotel floating-icon" style="top: 20%; right: 12%; animation-delay: 1s; color: #8b5cf6;"></i>
+    <i class="fas fa-bus floating-icon" style="bottom: 30%; left: 5%; animation-delay: 2s; color: #10b981;"></i>
+    <i class="fas fa-taxi floating-icon" style="bottom: 20%; right: 8%; animation-delay: 0.5s; color: #f59e0b;"></i>
+
+    <h1 class="hero-title">
+      Your Journey,<br><span class="gradient-text">Reimagined</span>
+    </h1>
+    <p class="hero-subtitle">
+      Book buses, flights, hotels & cabs — all in one place. Experience the future of travel with NexusTransit.
+    </p>
+  </div>
+
+  <!-- Search Card -->
+  <div class="row justify-content-center mb-5">
+    <div class="col-lg-11">
+      <div class="glass-card-static glass-card-glow p-4 p-md-5">
+
+        <!-- Service Tabs -->
+        <div class="search-service-tabs" id="searchTabs">
+          <button class="search-tab-btn active" data-tab="bus" type="button">
+            <i class="fas fa-bus-alt"></i> Buses
+          </button>
+          <button class="search-tab-btn" data-tab="flight" type="button">
+            <i class="fas fa-plane-departure"></i> Flights
+          </button>
+          <button class="search-tab-btn" data-tab="hotel" type="button">
+            <i class="fas fa-hotel"></i> Hotels
+          </button>
+          <button class="search-tab-btn" data-tab="cab" type="button">
+            <i class="fas fa-taxi"></i> Cabs
+          </button>
+        </div>
+
+        <!-- Bus/Train Search Panel -->
+        <div class="search-panel active" id="panel-bus">
+          <form action="{{ url_for('search') }}" method="POST">
+            <input type="hidden" name="transport_type" id="bus_transport_type" value="bus">
+            <div class="row g-3 align-items-end">
+              <div class="col-md-3">
+                <label><i class="fas fa-map-marker-alt me-1 text-accent"></i> From</label>
+                <select class="form-select" name="from" required>
+                  <option value="" disabled selected>Select Origin</option>
+                  {% for city in cities %}
+                  <option value="{{ city }}">{{ city }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label><i class="fas fa-location-dot me-1 text-danger"></i> To</label>
+                <select class="form-select" name="to" required>
+                  <option value="" disabled selected>Select Destination</option>
+                  {% for city in cities %}
+                  <option value="{{ city }}">{{ city }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label><i class="fas fa-calendar-day me-1 text-warning"></i> Date</label>
+                <input type="date" class="form-control" name="date" required>
+              </div>
+              <div class="col-md-2">
+                <label><i class="fas fa-exchange-alt me-1 text-accent-2"></i> Type</label>
+                <select class="form-select" onchange="document.getElementById('bus_transport_type').value = this.value">
+                  <option value="bus">Bus</option>
+                  <option value="train">Train</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <button type="submit" class="btn btn-primary btn-glow w-100 py-3 fw-bold">
+                  <i class="fas fa-search me-2"></i>Search
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Flight Search Panel -->
+        <div class="search-panel" id="panel-flight">
+          <form action="{{ url_for('search') }}" method="POST">
+            <input type="hidden" name="transport_type" value="flight">
+            <div class="row g-3 align-items-end">
+              <div class="col-md-2">
+                <label><i class="fas fa-plane-departure me-1 text-accent"></i> From</label>
+                <select class="form-select" name="from" required>
+                  <option value="" disabled selected>Origin City</option>
+                  {% for city in cities %}
+                  <option value="{{ city }}">{{ city }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label><i class="fas fa-plane-arrival me-1 text-danger"></i> To</label>
+                <select class="form-select" name="to" required>
+                  <option value="" disabled selected>Destination</option>
+                  {% for city in cities %}
+                  <option value="{{ city }}">{{ city }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label><i class="fas fa-calendar me-1 text-warning"></i> Departure</label>
+                <input type="date" class="form-control" name="date" required>
+              </div>
+              <div class="col-md-2">
+                <label><i class="fas fa-users me-1 text-accent-2"></i> Passengers</label>
+                <select class="form-select" name="passengers">
+                  <option value="1">1 Adult</option>
+                  <option value="2">2 Adults</option>
+                  <option value="3">3 Adults</option>
+                  <option value="4">4 Adults</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label><i class="fas fa-gem me-1 text-accent"></i> Class</label>
+                <select class="form-select" name="flight_class">
+                  <option value="economy">Economy</option>
+                  <option value="business">Business</option>
+                  <option value="first">First</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <button type="submit" class="btn btn-primary btn-glow w-100 py-3 fw-bold">
+                  <i class="fas fa-search me-2"></i>Search
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Hotel Search Panel -->
+        <div class="search-panel" id="panel-hotel">
+          <form action="{{ url_for('search_hotels') }}" method="POST">
+            <div class="row g-3 align-items-end">
+              <div class="col-md-3">
+                <label><i class="fas fa-city me-1 text-accent"></i> Destination</label>
+                <select class="form-select" name="destination" required>
+                  <option value="" disabled selected>Where to?</option>
+                  {% for city in cities %}
+                  <option value="{{ city }}">{{ city }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label><i class="fas fa-calendar-check me-1 text-success"></i> Check-in</label>
+                <input type="date" class="form-control" name="checkin" required>
+              </div>
+              <div class="col-md-2">
+                <label><i class="fas fa-calendar-minus me-1 text-danger"></i> Check-out</label>
+                <input type="date" class="form-control" name="checkout" required>
+              </div>
+              <div class="col-md-1">
+                <label><i class="fas fa-door-open me-1"></i> Rooms</label>
+                <select class="form-select" name="rooms">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label><i class="fas fa-user-group me-1"></i> Guests</label>
+                <select class="form-select" name="guests">
+                  <option value="1">1 Guest</option>
+                  <option value="2" selected>2 Guests</option>
+                  <option value="3">3 Guests</option>
+                  <option value="4">4 Guests</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <button type="submit" class="btn btn-primary btn-glow w-100 py-3 fw-bold">
+                  <i class="fas fa-search me-2"></i>Search
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Cab Search Panel -->
+        <div class="search-panel" id="panel-cab">
+          <form action="{{ url_for('search_cabs') }}" method="POST">
+            <div class="row g-3 align-items-end">
+              <div class="col-md-3">
+                <label><i class="fas fa-map-pin me-1 text-accent"></i> Pickup</label>
+                <select class="form-select" name="pickup" required>
+                  <option value="" disabled selected>Pickup City</option>
+                  {% for city in cities %}
+                  <option value="{{ city }}">{{ city }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label><i class="fas fa-flag-checkered me-1 text-danger"></i> Drop-off</label>
+                <select class="form-select" name="dropoff" required>
+                  <option value="" disabled selected>Drop City</option>
+                  {% for city in cities %}
+                  <option value="{{ city }}">{{ city }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label><i class="fas fa-calendar me-1 text-warning"></i> Date</label>
+                <input type="date" class="form-control" name="date" required>
+              </div>
+              <div class="col-md-2">
+                <label><i class="fas fa-car me-1 text-accent-2"></i> Cab Type</label>
+                <select class="form-select" name="cab_type">
+                  <option value="all">All Types</option>
+                  <option value="Hatchback">Hatchback</option>
+                  <option value="Sedan">Sedan</option>
+                  <option value="SUV">SUV</option>
+                  <option value="Luxury">Luxury</option>
+                  <option value="Electric">Electric</option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <button type="submit" class="btn btn-primary btn-glow w-100 py-3 fw-bold">
+                  <i class="fas fa-search me-2"></i>Search
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Counter -->
+  <div class="row text-center mb-5 g-3">
+    <div class="col-6 col-md-3 animate-fade-in-up stagger-1">
+      <div class="stat-item">
+        <div class="stat-number gradient-text" data-count="10000">10,000+</div>
+        <div class="stat-label">Routes Available</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3 animate-fade-in-up stagger-2">
+      <div class="stat-item">
+        <div class="stat-number gradient-text" data-count="50000">50,000+</div>
+        <div class="stat-label">Happy Travelers</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3 animate-fade-in-up stagger-3">
+      <div class="stat-item">
+        <div class="stat-number gradient-text" data-count="500">500+</div>
+        <div class="stat-label">Partner Hotels</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3 animate-fade-in-up stagger-4">
+      <div class="stat-item">
+        <div class="stat-number gradient-text-gold" data-count="48">4.8 ★</div>
+        <div class="stat-label">User Rating</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Offers Carousel -->
+  <div class="mb-5 animate-fade-in-up stagger-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4 class="fw-bold mb-0"><i class="fas fa-bolt me-2 text-warning"></i>Exclusive Deals</h4>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-custom rounded-circle" onclick="scrollOffers(-1)"
+          style="width:36px;height:36px;padding:0;">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="btn btn-sm btn-outline-custom rounded-circle" onclick="scrollOffers(1)"
+          style="width:36px;height:36px;padding:0;">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+    <div class="offers-track" id="offersTrack">
+      {% for offer in offers %}
+      <div class="offer-card" style="--offer-color: {{ offer.color }};">
+        <div
+          style="position:absolute;top:0;left:0;width:4px;height:100%;background:{{ offer.color }};border-radius:4px 0 0 4px;">
+        </div>
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <h6 class="fw-bold mb-0" style="color: {{ offer.color }};">{{ offer.title }}</h6>
+          <span class="offer-code">{{ offer.code }}</span>
+        </div>
+        <p class="text-secondary mb-0" style="font-size: 0.85rem;">{{ offer.desc }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Trending Destinations -->
+  <div class="mb-5 animate-fade-in-up stagger-4">
+    <h4 class="fw-bold mb-4"><i class="fas fa-fire me-2" style="color: #ef4444;"></i>Trending Destinations</h4>
+    <div class="row g-3">
+      {% for dest in trending %}
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="destination-card p-3 text-center h-100">
+          <div class="destination-icon mx-auto"
+            style="background: {% if loop.index % 3 == 1 %}rgba(14,165,233,0.1){% elif loop.index % 3 == 2 %}rgba(139,92,246,0.1){% else %}rgba(16,185,129,0.1){% endif %};">
+            <i class="fas {{ dest.icon }}"
+              style="color: {% if loop.index % 3 == 1 %}#0ea5e9{% elif loop.index % 3 == 2 %}#8b5cf6{% else %}#10b981{% endif %};"></i>
+          </div>
+          <h6 class="fw-bold mb-1">{{ dest.city }}</h6>
+          <small class="text-secondary d-block mb-2">{{ dest.tagline }}</small>
+          <span class="text-accent fw-bold" style="font-size: 0.85rem;">From ₹{{ dest.price_from }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Why Choose Us -->
+  <div class="mb-5 pb-4 animate-fade-in-up stagger-5">
+    <h4 class="fw-bold text-center mb-4"><i class="fas fa-sparkles me-2 text-accent"></i>Why Choose NexusTransit</h4>
+    <div class="row g-4">
+      <div class="col-md-3 col-6">
+        <div class="feature-card h-100">
+          <div class="feature-icon bg-accent-subtle">
+            <i class="fas fa-shield-halved text-accent"></i>
+          </div>
+          <h6 class="fw-bold mb-2">Quantum Security</h6>
+          <p class="text-secondary mb-0" style="font-size: 0.82rem;">Military-grade encryption for all transactions.</p>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="feature-card h-100">
+          <div class="feature-icon bg-purple-subtle">
+            <i class="fas fa-bolt text-accent-2"></i>
+          </div>
+          <h6 class="fw-bold mb-2">Instant Booking</h6>
+          <p class="text-secondary mb-0" style="font-size: 0.82rem;">Lightning-fast seat confirmation & e-tickets.</p>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="feature-card h-100">
+          <div class="feature-icon bg-green-subtle">
+            <i class="fas fa-tags" style="color: var(--accent-success);"></i>
+          </div>
+          <h6 class="fw-bold mb-2">Best Prices</h6>
+          <p class="text-secondary mb-0" style="font-size: 0.82rem;">Price match guarantee on every booking.</p>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="feature-card h-100">
+          <div class="feature-icon bg-amber-subtle">
+            <i class="fas fa-headset" style="color: var(--accent-tertiary);"></i>
+          </div>
+          <h6 class="fw-bold mb-2">24/7 AI Support</h6>
+          <p class="text-secondary mb-0" style="font-size: 0.82rem;">Round-the-clock assistance powered by AI.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Date input defaults
+  document.addEventListener('DOMContentLoaded', function () {
+    const today = new Date().toISOString().split('T')[0];
+    document.querySelectorAll('input[type="date"]').forEach(input => {
+      input.setAttribute('min', today);
+      if (!input.value) input.value = today;
+    });
+
+    // Tab switching
+    const tabBtns = document.querySelectorAll('.search-tab-btn');
+    const panels = document.querySelectorAll('.search-panel');
+
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', function () {
+        tabBtns.forEach(b => b.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+        this.classList.add('active');
+        document.getElementById('panel-' + this.dataset.tab).classList.add('active');
+      });
+    });
+  });
+
+  // Offers scroll
+  function scrollOffers(dir) {
+    const track = document.getElementById('offersTrack');
+    track.scrollBy({ left: dir * 340, behavior: 'smooth' });
+  }
+</script>
+{% endblock %}

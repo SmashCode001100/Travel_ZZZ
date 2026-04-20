@@ -1,0 +1,429 @@
+{% extends 'base.html' %}
+
+{% block title %}Search Results | NexusTransit{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <!-- Route Header -->
+  <div class="row mb-4 animate-fade-in-up">
+    <div class="col-12">
+      <div class="glass-card-static p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+          <h3 class="mb-1">
+            <span class="gradient-text">{{ from_city }}</span>
+            <i class="fas fa-arrow-right mx-2 text-secondary" style="font-size: 0.6em"></i>
+            <span class="gradient-text">{{ to_city }}</span>
+          </h3>
+          <p class="text-secondary mb-0">
+            <i class="fas fa-calendar-alt me-2"></i>{{ date }}
+            <span class="ms-3">
+              {% if transport_type == 'flight' %}<i class="fas fa-plane me-1"></i>Flights
+              {% elif transport_type == 'train' %}<i class="fas fa-train me-1"></i>Trains
+              {% else %}<i class="fas fa-bus-alt me-1"></i>Buses{% endif %}
+            </span>
+            <span class="ms-3 text-accent fw-bold">{{ options|length }} results found</span>
+          </p>
+        </div>
+        <a href="{{ url_for('index') }}" class="btn btn-outline-custom rounded-pill">
+          <i class="fas fa-edit me-1"></i>Modify Search
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Filter Sidebar -->
+    <div class="col-lg-3 animate-fade-in-left">
+      <div class="glass-card-static p-4 filter-sidebar">
+        <h5 class="fw-bold mb-3"><i class="fas fa-sliders me-2 text-accent"></i>Filters</h5>
+
+        <!-- Sort -->
+        <div class="filter-section">
+          <label class="filter-title">
+            <span><i class="fas fa-sort me-2"></i>Sort By</span>
+          </label>
+          <select class="form-select sort-dropdown" id="sortSelect">
+            <option value="departure">Departure Time</option>
+            <option value="price_low">Price: Low to High</option>
+            <option value="price_high">Price: High to Low</option>
+            <option value="duration">Duration</option>
+            <option value="rating">Rating</option>
+          </select>
+        </div>
+
+        <!-- AC Filter -->
+        {% if transport_type == 'bus' %}
+        <div class="filter-section">
+          <label class="filter-title">
+            <span><i class="fas fa-snowflake me-2"></i>AC / Non-AC</span>
+          </label>
+          <label class="filter-checkbox">
+            <input type="checkbox" class="filter-ac" value="ac"> AC Only
+          </label>
+          <label class="filter-checkbox">
+            <input type="checkbox" class="filter-ac" value="nonac"> Non-AC Only
+          </label>
+        </div>
+        {% endif %}
+
+        <!-- Price Range -->
+        <div class="filter-section">
+          <label class="filter-title">
+            <span><i class="fas fa-indian-rupee-sign me-2"></i>Price Range</span>
+          </label>
+          <div class="d-flex justify-content-between mb-2">
+            <small class="text-secondary">₹0</small>
+            <small class="text-accent fw-bold" id="priceRangeVal">₹15,000</small>
+          </div>
+          <input type="range" class="price-range-slider w-100" id="priceRange" min="0" max="15000" value="15000"
+            step="100">
+        </div>
+
+        <!-- Rating -->
+        <div class="filter-section">
+          <label class="filter-title">
+            <span><i class="fas fa-star me-2 text-warning"></i>Rating</span>
+          </label>
+          <label class="filter-checkbox"><input type="checkbox" class="filter-rating" value="4.5"> 4.5+ ★
+            Excellent</label>
+          <label class="filter-checkbox"><input type="checkbox" class="filter-rating" value="4.0"> 4.0+ ★ Very
+            Good</label>
+          <label class="filter-checkbox"><input type="checkbox" class="filter-rating" value="3.5"> 3.5+ ★ Good</label>
+          <label class="filter-checkbox"><input type="checkbox" class="filter-rating" value="3.0"> 3.0+ ★
+            Average</label>
+        </div>
+
+        <!-- Departure Time -->
+        <div class="filter-section">
+          <label class="filter-title">
+            <span><i class="fas fa-clock me-2"></i>Departure Time</span>
+          </label>
+          <label class="filter-checkbox"><input type="checkbox" class="filter-dep" value="early_morning"> 🌅 Early
+            Morning (00-06)</label>
+          <label class="filter-checkbox"><input type="checkbox" class="filter-dep" value="morning"> ☀️ Morning
+            (06-12)</label>
+          <label class="filter-checkbox"><input type="checkbox" class="filter-dep" value="afternoon"> 🌤️ Afternoon
+            (12-18)</label>
+          <label class="filter-checkbox"><input type="checkbox" class="filter-dep" value="night"> 🌙 Night
+            (18-24)</label>
+        </div>
+
+        <!-- Amenities -->
+        <div class="filter-section">
+          <label class="filter-title">
+            <span><i class="fas fa-check-circle me-2"></i>Amenities</span>
+          </label>
+          <label class="filter-checkbox"><input type="checkbox" class="filter-amenity" value="WiFi"> <i
+              class="fas fa-wifi me-1"></i> WiFi</label>
+          <label class="filter-checkbox"><input type="checkbox" class="filter-amenity" value="Charging"> <i
+              class="fas fa-plug me-1"></i> Charging</label>
+          <label class="filter-checkbox"><input type="checkbox" class="filter-amenity" value="Food"> <i
+              class="fas fa-utensils me-1"></i> Food</label>
+          <label class="filter-checkbox"><input type="checkbox" class="filter-amenity" value="Entertainment"> <i
+              class="fas fa-tv me-1"></i> Entertainment</label>
+        </div>
+
+        <button class="btn btn-outline-custom w-100 mt-2 rounded-pill" id="resetFilters">
+          <i class="fas fa-rotate me-1"></i> Reset Filters
+        </button>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="col-lg-9">
+      {% if options %}
+      <div id="resultsContainer">
+        {% for option in options %}
+        <div class="result-card animate-fade-in-up" data-price="{{ option.price }}" data-rating="{{ option.rating }}"
+          data-departure="{{ option.departure }}" data-type="{{ option.type }}"
+          data-amenities="{{ option.amenities|join(',') }}" data-duration="{{ option.duration }}"
+          style="animation-delay: {{ loop.index0 * 0.05 }}s; opacity: 0; animation-fill-mode: forwards;">
+
+          <div class="row align-items-center">
+            <!-- Name & Type -->
+            <div class="col-md-3 mb-3 mb-md-0">
+              <div class="d-flex align-items-center gap-3">
+                <div
+                  style="width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+                  background: {% if transport_type == 'flight' %}rgba(245,158,11,0.1){% elif transport_type == 'train' %}rgba(139,92,246,0.1){% else %}rgba(14,165,233,0.1){% endif %};">
+                  {% if transport_type == 'flight' %}<i class="fas fa-plane" style="color: #f59e0b;"></i>
+                  {% elif transport_type == 'train' %}<i class="fas fa-train" style="color: #8b5cf6;"></i>
+                  {% else %}<i class="fas fa-bus-alt text-accent"></i>{% endif %}
+                </div>
+                <div>
+                  <h6 class="mb-0 fw-bold">{{ option.name }}</h6>
+                  <small class="text-secondary">{{ option.type }}</small>
+                  {% if option.flight_number is defined %}
+                  <br><small class="text-accent" style="font-size:0.75rem;">{{ option.flight_number }}</small>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="mt-2">
+                <span class="text-warning" style="font-size: 0.85rem;"><i class="fas fa-star"></i> {{ option.rating
+                  }}</span>
+              </div>
+            </div>
+
+            <!-- Timing -->
+            <div class="col-md-4 mb-3 mb-md-0">
+              <div class="d-flex justify-content-between align-items-center px-md-2 position-relative">
+                <div class="text-center" style="min-width: 60px;">
+                  <h5 class="mb-0 fw-bold">{{ option.departure }}</h5>
+                  <small class="text-secondary" style="font-size: 0.75rem;">{{ option.from }}</small>
+                </div>
+
+                <div class="flex-grow-1 px-2 text-center position-relative">
+                  <div
+                    style="border-bottom: 2px dashed rgba(255,255,255,0.1); position: absolute; top: 50%; left: 0; right: 0;">
+                  </div>
+                  <span class="badge rounded-pill position-relative"
+                    style="background: rgba(15, 20, 40, 0.9); border: 1px solid rgba(255,255,255,0.08); padding: 0.3rem 0.7rem; font-size: 0.75rem;">
+                    <i class="fas fa-clock me-1 text-accent"></i>{{ option.duration }}
+                  </span>
+                </div>
+
+                <div class="text-center" style="min-width: 60px;">
+                  <h5 class="mb-0 fw-bold">{{ option.arrival }}</h5>
+                  <small class="text-secondary" style="font-size: 0.75rem;">{{ option.to }}</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Amenities -->
+            <div class="col-md-3 mb-3 mb-md-0">
+              <div class="d-flex flex-wrap gap-1">
+                {% for amenity in option.amenities[:3] %}
+                <span class="badge border border-secondary text-secondary rounded-pill"
+                  style="font-size: 0.7rem; padding: 0.25rem 0.5rem;">
+                  <i class="fas fa-check-circle me-1" style="color: var(--accent-success); font-size: 0.6rem;"></i>{{
+                  amenity }}
+                </span>
+                {% endfor %}
+                {% if option.amenities|length > 3 %}
+                <span class="badge text-secondary" style="font-size: 0.7rem;">+{{ option.amenities|length - 3 }}
+                  more</span>
+                {% endif %}
+              </div>
+              <div class="mt-2">
+                <small class="text-success fw-bold" style="font-size: 0.8rem;">
+                  <i class="fas fa-chair me-1"></i>{{ option.seats_available }} seats left
+                </small>
+              </div>
+            </div>
+
+            <!-- Price & CTA -->
+            <div class="col-md-2 text-md-end text-center">
+              <div class="price-tag gradient-text mb-2">₹{{ option.price }}</div>
+              <a href="{{ url_for('select_seats', transport_type=transport_type, id=option.id) }}"
+                class="btn btn-primary btn-glow w-100 fw-bold py-2" style="font-size: 0.9rem;">
+                Select <i class="fas fa-arrow-right ms-1"></i>
+              </a>
+              <label class="filter-checkbox mt-2 justify-content-center" style="font-size: 0.75rem;">
+                <input type="checkbox" class="compare-check" data-id="{{ option.id }}" data-name="{{ option.name }}"
+                  data-price="{{ option.price }}" data-departure="{{ option.departure }}"
+                  data-arrival="{{ option.arrival }}" data-duration="{{ option.duration }}"
+                  data-rating="{{ option.rating }}" data-type="{{ option.type }}">
+                Compare
+              </label>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- No Results after filtering -->
+      <div id="noResultsMsg" class="text-center py-5" style="display: none;">
+        <div class="glass-card-static p-5 d-inline-block">
+          <i class="fas fa-filter-circle-xmark fa-4x text-secondary mb-3 opacity-50"></i>
+          <h4>No matches found</h4>
+          <p class="text-secondary">Try adjusting your filters to see more results.</p>
+          <button class="btn btn-primary rounded-pill" onclick="document.getElementById('resetFilters').click()">Reset
+            Filters</button>
+        </div>
+      </div>
+
+      {% else %}
+      <div class="text-center py-5 animate-fade-in-up">
+        <div class="glass-card-static p-5 d-inline-block">
+          <i class="fas fa-route fa-4x text-secondary mb-3 opacity-50"></i>
+          <h3 class="text-white">No Results Found</h3>
+          <p class="text-secondary">We couldn't find any options for this route on the selected date.</p>
+          <a href="{{ url_for('index') }}" class="btn btn-primary btn-glow mt-3 fw-bold rounded-pill px-4">Try Another
+            Search</a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Compare Panel -->
+<div class="compare-panel" id="comparePanel">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="mb-0 fw-bold"><i class="fas fa-code-compare me-2 text-accent"></i>Compare (<span
+          id="compareCount">0</span>/3)</h5>
+      <button class="btn btn-sm btn-outline-custom rounded-pill" onclick="closeCompare()">
+        <i class="fas fa-times me-1"></i>Close
+      </button>
+    </div>
+    <div class="row g-3" id="compareGrid">
+      <!-- Filled dynamically -->
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const cards = document.querySelectorAll('.result-card');
+    const noResultsMsg = document.getElementById('noResultsMsg');
+
+    // ── Client-side filtering ──
+    function applyFilters() {
+      const maxPrice = parseInt(document.getElementById('priceRange').value);
+      const acFilters = Array.from(document.querySelectorAll('.filter-ac:checked')).map(cb => cb.value);
+      const ratingFilters = Array.from(document.querySelectorAll('.filter-rating:checked')).map(cb => parseFloat(cb.value));
+      const depFilters = Array.from(document.querySelectorAll('.filter-dep:checked')).map(cb => cb.value);
+      const amenityFilters = Array.from(document.querySelectorAll('.filter-amenity:checked')).map(cb => cb.value);
+
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        let show = true;
+        const price = parseInt(card.dataset.price);
+        const rating = parseFloat(card.dataset.rating);
+        const departure = card.dataset.departure;
+        const type = card.dataset.type;
+        const amenities = card.dataset.amenities;
+        const hour = parseInt(departure.split(':')[0]);
+
+        // Price
+        if (price > maxPrice) show = false;
+
+        // AC
+        if (acFilters.length > 0) {
+          const isAC = type.toUpperCase().includes('AC');
+          if (acFilters.includes('ac') && !isAC) show = false;
+          if (acFilters.includes('nonac') && isAC) show = false;
+        }
+
+        // Rating
+        if (ratingFilters.length > 0) {
+          const minRating = Math.min(...ratingFilters);
+          if (rating < minRating) show = false;
+        }
+
+        // Departure slot
+        if (depFilters.length > 0) {
+          let inSlot = false;
+          depFilters.forEach(slot => {
+            if (slot === 'early_morning' && hour >= 0 && hour < 6) inSlot = true;
+            if (slot === 'morning' && hour >= 6 && hour < 12) inSlot = true;
+            if (slot === 'afternoon' && hour >= 12 && hour < 18) inSlot = true;
+            if (slot === 'night' && hour >= 18 && hour < 24) inSlot = true;
+          });
+          if (!inSlot) show = false;
+        }
+
+        // Amenities
+        if (amenityFilters.length > 0) {
+          amenityFilters.forEach(a => {
+            if (!amenities.toLowerCase().includes(a.toLowerCase())) show = false;
+          });
+        }
+
+        card.style.display = show ? '' : 'none';
+        if (show) visibleCount++;
+      });
+
+      noResultsMsg.style.display = visibleCount === 0 ? '' : 'none';
+    }
+
+    // Sorting
+    document.getElementById('sortSelect').addEventListener('change', function () {
+      const container = document.getElementById('resultsContainer');
+      const sortedCards = Array.from(cards);
+
+      sortedCards.sort((a, b) => {
+        switch (this.value) {
+          case 'price_low': return parseInt(a.dataset.price) - parseInt(b.dataset.price);
+          case 'price_high': return parseInt(b.dataset.price) - parseInt(a.dataset.price);
+          case 'rating': return parseFloat(b.dataset.rating) - parseFloat(a.dataset.rating);
+          case 'duration': return a.dataset.duration.localeCompare(b.dataset.duration);
+          default: return a.dataset.departure.localeCompare(b.dataset.departure);
+        }
+      });
+
+      sortedCards.forEach(card => container.appendChild(card));
+    });
+
+    // Event listeners
+    document.getElementById('priceRange').addEventListener('input', function () {
+      document.getElementById('priceRangeVal').textContent = '₹' + parseInt(this.value).toLocaleString();
+      applyFilters();
+    });
+
+    document.querySelectorAll('.filter-ac, .filter-rating, .filter-dep, .filter-amenity').forEach(cb => {
+      cb.addEventListener('change', applyFilters);
+    });
+
+    document.getElementById('resetFilters').addEventListener('click', function () {
+      document.getElementById('priceRange').value = 15000;
+      document.getElementById('priceRangeVal').textContent = '₹15,000';
+      document.querySelectorAll('.filter-ac, .filter-rating, .filter-dep, .filter-amenity').forEach(cb => cb.checked = false);
+      applyFilters();
+    });
+
+    // ── Compare Feature ──
+    const compareChecks = document.querySelectorAll('.compare-check');
+    const comparePanel = document.getElementById('comparePanel');
+    const compareGrid = document.getElementById('compareGrid');
+    const compareCount = document.getElementById('compareCount');
+    let compared = [];
+
+    compareChecks.forEach(cb => {
+      cb.addEventListener('change', function () {
+        if (this.checked && compared.length >= 3) {
+          this.checked = false;
+          return;
+        }
+        updateCompare();
+      });
+    });
+
+    function updateCompare() {
+      compared = Array.from(document.querySelectorAll('.compare-check:checked'));
+      compareCount.textContent = compared.length;
+
+      if (compared.length >= 2) {
+        comparePanel.classList.add('show');
+        compareGrid.innerHTML = compared.map(cb => `
+        <div class="col-md-${12 / compared.length}">
+          <div class="glass-card-static p-3 text-center">
+            <h6 class="fw-bold mb-2">${cb.dataset.name}</h6>
+            <small class="text-secondary d-block mb-2">${cb.dataset.type}</small>
+            <div class="d-flex justify-content-around mb-2">
+              <div><small class="text-secondary">Dep</small><br><strong>${cb.dataset.departure}</strong></div>
+              <div><small class="text-secondary">Arr</small><br><strong>${cb.dataset.arrival}</strong></div>
+            </div>
+            <div class="mb-2"><small class="text-secondary">Duration:</small> <strong>${cb.dataset.duration}</strong></div>
+            <div class="mb-2"><small class="text-secondary">Rating:</small> <span class="text-warning"><i class="fas fa-star"></i> ${cb.dataset.rating}</span></div>
+            <div class="price-tag gradient-text" style="font-size: 1.3rem;">₹${cb.dataset.price}</div>
+          </div>
+        </div>
+      `).join('');
+      } else {
+        comparePanel.classList.remove('show');
+      }
+    }
+  });
+
+  function closeCompare() {
+    document.querySelectorAll('.compare-check').forEach(cb => cb.checked = false);
+    document.getElementById('comparePanel').classList.remove('show');
+    document.getElementById('compareCount').textContent = '0';
+  }
+</script>
+{% endblock %}

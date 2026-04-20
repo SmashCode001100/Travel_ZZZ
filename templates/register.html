@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Register | NexusTransit{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-5 col-lg-4">
+      <div class="glass-card-static glass-card-glow p-5 animate-fade-in-up">
+        <div class="text-center mb-4">
+          <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+            style="width: 60px; height: 60px; background: rgba(139, 92, 246, 0.1);">
+            <i class="fas fa-rocket fa-2x text-accent-2"></i>
+          </div>
+          <h3 class="fw-bold mb-1">Join <span class="gradient-text">NexusTransit</span></h3>
+          <p class="text-secondary mb-0" style="font-size: 0.9rem;">Create an account to start booking</p>
+        </div>
+
+        <form action="{{ url_for('register') }}" method="POST">
+          <div class="mb-3">
+            <label for="username"><i class="fas fa-user me-1"></i> Username</label>
+            <input type="text" class="form-control" id="username" name="username" required
+              placeholder="Choose a username">
+          </div>
+          <div class="mb-3">
+            <label for="email"><i class="fas fa-envelope me-1"></i> Email</label>
+            <input type="email" class="form-control" id="email" name="email" required placeholder="name@example.com">
+          </div>
+          <div class="mb-4">
+            <label for="password"><i class="fas fa-lock me-1"></i> Password</label>
+            <input type="password" class="form-control" id="password" name="password" required
+              placeholder="Create a strong password">
+          </div>
+          <button type="submit" class="btn btn-primary btn-glow w-100 py-3 fw-bold rounded-pill mb-3">
+            <i class="fas fa-rocket me-2"></i>Create Account
+          </button>
+        </form>
+
+        <!-- Social (Visual) -->
+        <div class="text-center">
+          <small class="text-secondary">or register with</small>
+          <div class="d-flex justify-content-center gap-3 mt-3">
+            <button class="btn btn-outline-custom rounded-circle" style="width: 42px; height: 42px; padding: 0;"
+              disabled>
+              <i class="fab fa-google"></i>
+            </button>
+            <button class="btn btn-outline-custom rounded-circle" style="width: 42px; height: 42px; padding: 0;"
+              disabled>
+              <i class="fab fa-apple"></i>
+            </button>
+            <button class="btn btn-outline-custom rounded-circle" style="width: 42px; height: 42px; padding: 0;"
+              disabled>
+              <i class="fab fa-github"></i>
+            </button>
+          </div>
+        </div>
+
+        <p class="text-center text-secondary mt-4 mb-0" style="font-size: 0.9rem;">
+          Already have an account? <a href="{{ url_for('login') }}"
+            class="text-accent fw-bold text-decoration-none">Login</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

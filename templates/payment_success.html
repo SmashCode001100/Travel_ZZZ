@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Booking Confirmed! | NexusTransit{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-6 text-center">
+      <div class="glass-card-static p-5 animate-fade-in-up">
+        <!-- Success Animation -->
+        <div class="mb-4 position-relative d-inline-block">
+          <div style="width: 120px; height: 120px; background: rgba(16, 185, 129, 0.1); border-radius: 50%;"
+            class="d-flex align-items-center justify-content-center mx-auto">
+            <i class="fas fa-check-circle text-success"
+              style="font-size: 5rem; animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; opacity: 0; transform: scale(0);"></i>
+          </div>
+        </div>
+
+        <h1 class="mb-3 gradient-text fw-bold">Booking Confirmed!</h1>
+        <p class="text-secondary mb-4">Your booking has been successfully confirmed. Have a great trip!</p>
+
+        <!-- Booking Details -->
+        <div class="glass-card-static p-4 mx-auto mb-4 text-start"
+          style="background: rgba(0,0,0,0.2); max-width: 420px; border-left: 4px solid var(--accent-primary);">
+
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-secondary">Booking ID</span>
+            <span class="fw-bold font-monospace" style="color: var(--accent-primary);">{{ booking.booking_id }}</span>
+          </div>
+
+          {% if booking.booking_type == 'hotel' or booking.hotel is defined %}
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-secondary">Hotel</span>
+            <span class="text-white">{{ booking.hotel.name }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-secondary">Destination</span>
+            <span class="text-white">{{ booking.hotel.destination }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-secondary">Check-in / Out</span>
+            <span class="text-white">{{ booking.hotel.checkin }} → {{ booking.hotel.checkout }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-secondary">Room</span>
+            <span class="text-white">{{ booking.room_type }}</span>
+          </div>
+          {% elif booking.booking_type == 'cab' or booking.transport.cab_type is defined %}
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-secondary">Route</span>
+            <span class="text-white">{{ booking.transport.pickup }} → {{ booking.transport.dropoff }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-secondary">Cab</span>
+            <span class="text-white">{{ booking.transport.cab_type }} – {{ booking.transport.car_model }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-secondary">Driver</span>
+            <span class="text-white">{{ booking.transport.driver_name }}</span>
+          </div>
+          {% else %}
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-secondary">Route</span>
+            <span class="text-white">{{ booking.transport.from }} → {{ booking.transport.to }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-secondary">
+              {% if booking.transport_type == 'flight' %}Flight
+              {% elif booking.transport_type == 'train' %}Train
+              {% else %}Bus{% endif %}
+            </span>
+            <span class="text-white">{{ booking.transport.name }}</span>
+          </div>
+          {% if booking.seats %}
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-secondary">Seats</span>
+            <span class="text-white">{{ booking.seats|join(', ') }}</span>
+          </div>
+          {% endif %}
+          {% endif %}
+
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-secondary">Amount Paid</span>
+            <span class="text-success fw-bold">₹{{ booking.total_price }}</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-secondary">Payment</span>
+            <span class="text-white">{{ payment_method }} <i
+                class="fas fa-check-circle text-success ms-1 small"></i></span>
+          </div>
+        </div>
+
+        <!-- QR Code Placeholder -->
+        <div class="mb-4 p-3 d-inline-block" style="background: rgba(255,255,255,0.05); border-radius: 12px;">
+          <div
+            style="width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+            <i class="fas fa-qrcode fa-3x" style="color: rgba(255,255,255,0.3);"></i>
+          </div>
+          <small class="text-secondary d-block mt-2">Scan for digital ticket</small>
+        </div>
+
+        <div class="d-flex gap-3 justify-content-center mt-4">
+          <button class="btn btn-outline-custom rounded-pill px-4" onclick="window.print()">
+            <i class="fas fa-print me-2"></i>Print Ticket
+          </button>
+          <a href="{{ url_for('index') }}" class="btn btn-primary rounded-pill px-4">
+            <i class="fas fa-home me-2"></i>Back to Home
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes scaleIn {
+    0% {
+      transform: scale(0);
+      opacity: 0;
+    }
+
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+</style>
+{% endblock %}

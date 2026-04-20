@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}My Trips | NexusTransit{% endblock %}
+
+{% block content %}
+<div class="container my-4 animate-fade-in-up">
+  <h2 class="fw-bold mb-4">
+    <i class="fas fa-clock-rotate-left me-2 text-accent"></i>My Booking History
+  </h2>
+
+  {% if bookings %}
+  <!-- Filter Tabs -->
+  <div class="history-filter-tabs mb-4">
+    <button class="history-filter-btn active" data-filter="all">All</button>
+    <button class="history-filter-btn" data-filter="bus"><i class="fas fa-bus-alt me-1"></i> Buses</button>
+    <button class="history-filter-btn" data-filter="train"><i class="fas fa-train me-1"></i> Trains</button>
+    <button class="history-filter-btn" data-filter="flight"><i class="fas fa-plane me-1"></i> Flights</button>
+    <button class="history-filter-btn" data-filter="hotel"><i class="fas fa-hotel me-1"></i> Hotels</button>
+    <button class="history-filter-btn" data-filter="cab"><i class="fas fa-taxi me-1"></i> Cabs</button>
+  </div>
+
+  <div class="d-flex flex-column gap-3" id="historyList">
+    {% for booking in bookings %}
+    <div class="result-card booking-entry"
+      data-type="{{ booking.get('booking_type', booking.get('transport_type', 'bus')) }}"
+      style="animation: fadeInUp 0.4s ease-out {{ loop.index0 * 0.06 }}s forwards; opacity: 0;">
+      <div class="row align-items-center">
+        <!-- Status -->
+        <div class="col-md-2 text-center mb-3 mb-md-0">
+          <span class="badge rounded-pill px-3 py-2 mb-2" style="background: rgba(16,185,129,0.15); color: #10b981;">
+            <i class="fas fa-check-circle me-1"></i>{{ booking.status }}
+          </span>
+          <h6 class="fw-bold mb-0" style="font-size: 0.85rem; font-family: monospace; color: var(--accent-primary);">
+            {{ booking.booking_id }}
+          </h6>
+          <small class="text-secondary">{{ booking.date.split(' ')[0] }}</small>
+        </div>
+
+        <!-- Details -->
+        <div class="col-md-6 mb-3 mb-md-0">
+          {% if booking.get('booking_type') == 'hotel' or booking.hotel is defined %}
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <div
+              style="width: 36px; height: 36px; border-radius: 10px; background: rgba(139,92,246,0.1); display:flex; align-items:center; justify-content:center;">
+              <i class="fas fa-hotel text-accent-2"></i>
+            </div>
+            <div>
+              <h6 class="mb-0 fw-bold">{{ booking.hotel.name }}</h6>
+              <small class="text-secondary">{{ booking.hotel.destination }} • {{ booking.room_type }}</small>
+            </div>
+          </div>
+          <small class="text-secondary">
+            <i class="fas fa-calendar me-1"></i>{{ booking.hotel.checkin }} → {{ booking.hotel.checkout }}
+          </small>
+          {% elif booking.get('booking_type') == 'cab' or booking.transport.cab_type is defined %}
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <div
+              style="width: 36px; height: 36px; border-radius: 10px; background: rgba(16,185,129,0.1); display:flex; align-items:center; justify-content:center;">
+              <i class="fas fa-taxi" style="color: var(--accent-success);"></i>
+            </div>
+            <div>
+              <h6 class="mb-0 fw-bold">{{ booking.transport.provider }}</h6>
+              <small class="text-secondary">{{ booking.transport.cab_type }} • {{ booking.transport.car_model }}</small>
+            </div>
+          </div>
+          <small class="text-secondary">
+            {{ booking.transport.pickup }} → {{ booking.transport.dropoff }}
+          </small>
+          {% else %}
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <div
+              style="width: 36px; height: 36px; border-radius: 10px; display:flex; align-items:center; justify-content:center;
+                background: {% if booking.transport_type == 'flight' %}rgba(245,158,11,0.1){% elif booking.transport_type == 'train' %}rgba(139,92,246,0.1){% else %}rgba(14,165,233,0.1){% endif %};">
+              {% if booking.transport_type == 'flight' %}<i class="fas fa-plane" style="color: #f59e0b;"></i>
+              {% elif booking.transport_type == 'train' %}<i class="fas fa-train text-accent-2"></i>
+              {% else %}<i class="fas fa-bus-alt text-accent"></i>{% endif %}
+            </div>
+            <div>
+              <h6 class="mb-0 fw-bold">{{ booking.transport.name }}</h6>
+              <small class="text-secondary">{{ booking.transport.type }}</small>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-3 mt-1">
+            <div>
+              <span class="fw-bold">{{ booking.transport.departure }}</span>
+              <small class="text-secondary ms-1">{{ booking.transport.from }}</small>
+            </div>
+            <i class="fas fa-arrow-right text-secondary" style="font-size: 0.6rem;"></i>
+            <div>
+              <span class="fw-bold">{{ booking.transport.arrival }}</span>
+              <small class="text-secondary ms-1">{{ booking.transport.to }}</small>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Price -->
+        <div class="col-md-4 text-md-end text-center">
+          {% if booking.seats %}
+          <div class="mb-2">
+            <small class="text-secondary">Seats: </small>
+            {% for seat in booking.seats %}
+            <span class="badge"
+              style="background: rgba(14,165,233,0.1); border: 1px solid rgba(14,165,233,0.3); color: var(--accent-primary);">{{
+              seat }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+          <h4 class="fw-bold gradient-text mb-0">₹{{ booking.total_price }}</h4>
+          <small class="text-secondary">Paid via {{ booking.payment_method }}</small>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="text-center py-5">
+    <div class="glass-card-static p-5 d-inline-block">
+      <i class="fas fa-suitcase fa-4x mb-3" style="color: rgba(255,255,255,0.1);"></i>
+      <h3 class="fw-bold mb-2">No Bookings Yet</h3>
+      <p class="text-secondary mb-4">Start your journey with NexusTransit today!</p>
+      <a href="{{ url_for('index') }}" class="btn btn-primary btn-glow rounded-pill px-5 fw-bold">
+        <i class="fas fa-rocket me-2"></i>Book Now
+      </a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const filterBtns = document.querySelectorAll('.history-filter-btn');
+    const entries = document.querySelectorAll('.booking-entry');
+
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', function () {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        const filter = this.dataset.filter;
+
+        entries.forEach(entry => {
+          if (filter === 'all' || entry.dataset.type === filter) {
+            entry.style.display = '';
+          } else {
+            entry.style.display = 'none';
+          }
+        });
+      });
+    });
+  });
+</script>
+{% endblock %}

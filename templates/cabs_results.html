@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Cabs: {{ pickup }} → {{ dropoff }} | NexusTransit{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <!-- Header -->
+  <div class="row mb-4 animate-fade-in-up">
+    <div class="col-12">
+      <div class="glass-card-static p-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+          <h3 class="mb-1">
+            <i class="fas fa-taxi me-2" style="color: var(--accent-tertiary);"></i>
+            <span class="gradient-text">{{ pickup }}</span>
+            <i class="fas fa-arrow-right mx-2 text-secondary" style="font-size: 0.6em"></i>
+            <span class="gradient-text">{{ dropoff }}</span>
+          </h3>
+          <p class="text-secondary mb-0">
+            <i class="fas fa-calendar me-1"></i>{{ date }}
+            <span class="ms-3 text-accent fw-bold">{{ cabs|length }} cabs available</span>
+          </p>
+        </div>
+        <a href="{{ url_for('index') }}" class="btn btn-outline-custom rounded-pill">
+          <i class="fas fa-edit me-1"></i>Modify
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    {% for cab in cabs %}
+    <div class="col-md-6 col-lg-4"
+      style="animation: fadeInUp 0.5s ease-out {{ loop.index0 * 0.08 }}s forwards; opacity: 0;">
+      <div class="cab-card h-100">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <h5 class="fw-bold mb-1">{{ cab.provider }}</h5>
+            <span class="cab-type-badge" style="background: {% if cab.cab_type == 'Luxury' %}rgba(236,72,153,0.15); color: #ec4899;
+              {% elif cab.cab_type == 'SUV' %}rgba(139,92,246,0.15); color: #8b5cf6;
+              {% elif cab.cab_type == 'Electric' %}rgba(16,185,129,0.15); color: #10b981;
+              {% elif cab.cab_type == 'Sedan' %}rgba(14,165,233,0.15); color: #0ea5e9;
+              {% else %}rgba(245,158,11,0.15); color: #f59e0b;{% endif %}">
+              {% if cab.cab_type == 'Electric' %}<i class="fas fa-bolt me-1"></i>{% endif %}
+              {{ cab.cab_type }}
+            </span>
+          </div>
+          <span class="text-warning" style="font-size: 0.85rem;">
+            <i class="fas fa-star"></i> {{ cab.rating }}
+          </span>
+        </div>
+
+        <!-- Car Details -->
+        <div class="d-flex align-items-center gap-3 mb-3 p-2"
+          style="background: rgba(255,255,255,0.03); border-radius: 10px;">
+          <div
+            style="width: 50px; height: 50px; border-radius: 12px; background: rgba(255,255,255,0.04); display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-car fa-lg text-accent"></i>
+          </div>
+          <div>
+            <h6 class="mb-0 fw-bold">{{ cab.car_model }}</h6>
+            <small class="text-secondary"><i class="fas fa-user me-1"></i>{{ cab.driver_name }}</small>
+          </div>
+        </div>
+
+        <!-- Route Info -->
+        <div class="row text-center mb-3 g-2">
+          <div class="col-4">
+            <small class="text-secondary d-block">Distance</small>
+            <span class="fw-bold">{{ cab.distance_km }} km</span>
+          </div>
+          <div class="col-4">
+            <small class="text-secondary d-block">Est. Time</small>
+            <span class="fw-bold">{{ cab.estimated_time }}</span>
+          </div>
+          <div class="col-4">
+            <small class="text-secondary d-block">Rate/km</small>
+            <span class="fw-bold text-accent">₹{{ (cab.fare / cab.distance_km)|round(0)|int }}</span>
+          </div>
+        </div>
+
+        <!-- Amenities -->
+        <div class="d-flex flex-wrap gap-1 mb-3">
+          {% for a in cab.amenities %}
+          <span class="hotel-amenity-tag"><i class="fas fa-check me-1 text-success" style="font-size:0.6rem;"></i>{{ a
+            }}</span>
+          {% endfor %}
+        </div>
+
+        <!-- Price & Book -->
+        <div class="d-flex justify-content-between align-items-end pt-3"
+          style="border-top: 1px solid rgba(255,255,255,0.05);">
+          <div>
+            <small class="text-secondary">Estimated Fare</small>
+            <div class="price-tag gradient-text" style="font-size: 1.5rem;">₹{{ cab.fare }}</div>
+          </div>
+          <a href="{{ url_for('book_cab', cab_id=cab.id) }}" class="btn btn-primary btn-glow px-4 py-2 fw-bold">
+            Book <i class="fas fa-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

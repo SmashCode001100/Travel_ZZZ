@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+
+{% block title %}Select Seats | NexusTransit{% endblock %}
+
+{% block content %}
+<div class="container my-4 animate-fade-in-up">
+  <!-- Transport Info Header -->
+  <div class="glass-card-static p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <div
+          style="width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
+          background: {% if transport_type == 'flight' %}rgba(245,158,11,0.1){% elif transport_type == 'train' %}rgba(139,92,246,0.1){% else %}rgba(14,165,233,0.1){% endif %};">
+          {% if transport_type == 'flight' %}<i class="fas fa-plane fa-lg" style="color: #f59e0b;"></i>
+          {% elif transport_type == 'train' %}<i class="fas fa-train fa-lg text-accent-2"></i>
+          {% else %}<i class="fas fa-bus-alt fa-lg text-accent"></i>{% endif %}
+        </div>
+        <div>
+          <h4 class="mb-0 fw-bold">{{ transport.name }}</h4>
+          <p class="text-secondary mb-0">
+            {{ transport.from }} <i class="fas fa-arrow-right mx-2" style="font-size: 0.6em"></i> {{ transport.to }}
+          </p>
+        </div>
+      </div>
+      <div class="text-end">
+        <h4 class="mb-0 fw-bold">{{ transport.departure }} – {{ transport.arrival }}</h4>
+        <small class="text-secondary">{{ transport.type }} • {{ transport.duration }}</small>
+      </div>
+    </div>
+  </div>
+
+  <form action="{{ url_for('booking') }}" method="POST" id="seatForm">
+    <input type="hidden" name="transport_id" value="{{ transport.id }}">
+    <input type="hidden" name="transport_type" value="{{ transport_type }}">
+
+    <div class="row g-4">
+      <!-- Seat Map -->
+      <div class="col-lg-7">
+        <div class="glass-card-static p-4 p-md-5">
+          <h5 class="mb-4 text-center fw-bold">
+            <i class="fas fa-th me-2 text-accent"></i>Select Your Seats
+          </h5>
+
+          <div class="d-flex justify-content-center mb-4 gap-4">
+            <div class="d-flex align-items-center">
+              <div class="seat-legend available"></div>
+              <span class="ms-2 text-secondary" style="font-size: 0.85rem;">Available</span>
+            </div>
+            <div class="d-flex align-items-center">
+              <div class="seat-legend selected"></div>
+              <span class="ms-2 text-secondary" style="font-size: 0.85rem;">Selected</span>
+            </div>
+            <div class="d-flex align-items-center">
+              <div class="seat-legend booked"></div>
+              <span class="ms-2 text-secondary" style="font-size: 0.85rem;">Booked</span>
+            </div>
+          </div>
+
+          {% if transport_type == 'flight' %}
+          <!-- Flight Layout (3+3) with class zones -->
+          <div class="mx-auto"
+            style="max-width: 420px; padding: 20px; border: var(--glass-border); border-radius: 40px; border-top-left-radius: 80px; border-top-right-radius: 80px;">
+            <div class="text-center mb-3 pb-3" style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+              <i class="fas fa-plane fa-2x" style="color: rgba(255,255,255,0.1);"></i>
+              <div class="text-secondary small mt-1">Front of Aircraft</div>
+            </div>
+
+            {% set max_row = seats | map(attribute='row') | max %}
+            <div class="d-flex flex-column gap-2">
+              {% for row in range(1, max_row + 1) %}
+              {% if row == 1 %}
+              <div class="text-center mb-1"><small class="badge rounded-pill"
+                  style="background: rgba(236,72,153,0.15); color: #ec4899;">First Class</small></div>
+              {% elif row == 4 %}
+              <div class="text-center mb-1 mt-2"><small class="badge rounded-pill"
+                  style="background: rgba(139,92,246,0.15); color: #8b5cf6;">Business</small></div>
+              {% elif row == 9 %}
+              <div class="text-center mb-1 mt-2"><small class="badge rounded-pill"
+                  style="background: rgba(14,165,233,0.15); color: #0ea5e9;">Economy</small></div>
+              {% endif %}
+
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex gap-2">
+                  {% for seat in seats if seat.row == row and seat.number <= 3 %} <div>
+                    <input type="checkbox" name="seats" value="{{ seat.id }}" id="seat-{{ seat.id }}"
+                      class="seat-checkbox" {% if seat.is_booked %}disabled{% endif %}>
+                    <label for="seat-{{ seat.id }}" class="seat-label {% if seat.is_booked %}booked{% endif %}"
+                      title="₹{{ seat.price }}">
+                      {{ seat.id }}
+                    </label>
+                </div>
+                {% endfor %}
+              </div>
+              <div style="width: 30px; text-align: center; color: rgba(255,255,255,0.08); font-size: 0.75rem;">{{ row }}
+              </div>
+              <div class="d-flex gap-2">
+                {% for seat in seats if seat.row == row and seat.number > 3 %}
+                <div>
+                  <input type="checkbox" name="seats" value="{{ seat.id }}" id="seat-{{ seat.id }}"
+                    class="seat-checkbox" {% if seat.is_booked %}disabled{% endif %}>
+                  <label for="seat-{{ seat.id }}" class="seat-label {% if seat.is_booked %}booked{% endif %}"
+                    title="₹{{ seat.price }}">
+                    {{ seat.id }}
+                  </label>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {% elif transport_type == 'train' %}
+        <!-- Train Carriage Layout (3+3) -->
+        <div class="mx-auto" style="max-width: 450px; padding: 20px; border: var(--glass-border); border-radius: 20px;">
+          <div class="text-center mb-3 pb-3" style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+            <i class="fas fa-train fa-2x" style="color: rgba(255,255,255,0.1);"></i>
+            <div class="text-secondary small mt-1">Front of Carriage</div>
+          </div>
+
+          {% set max_row = seats | map(attribute='row') | max %}
+          <div class="d-flex flex-column gap-3">
+            {% for row in range(1, max_row + 1) %}
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="d-flex gap-2">
+                {% for seat in seats if seat.row == row and seat.number <= 3 %} <div>
+                  <input type="checkbox" name="seats" value="{{ seat.id }}" id="seat-{{ seat.id }}"
+                    class="seat-checkbox" {% if seat.is_booked %}disabled{% endif %}>
+                  <label for="seat-{{ seat.id }}" class="seat-label {% if seat.is_booked %}booked{% endif %}">
+                    {{ seat.id }}
+                  </label>
+              </div>
+              {% endfor %}
+            </div>
+            <div style="width: 30px; text-align: center; color: rgba(255,255,255,0.08); font-size: 0.75rem;">||</div>
+            <div class="d-flex gap-2">
+              {% for seat in seats if seat.row == row and seat.number > 3 %}
+              <div>
+                <input type="checkbox" name="seats" value="{{ seat.id }}" id="seat-{{ seat.id }}" class="seat-checkbox"
+                  {% if seat.is_booked %}disabled{% endif %}>
+                <label for="seat-{{ seat.id }}" class="seat-label {% if seat.is_booked %}booked{% endif %}">
+                  {{ seat.id }}
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      {% else %}
+      <!-- Bus Layout (2+2) -->
+      <div class="bus-layout mx-auto"
+        style="max-width: 320px; padding: 20px; border: var(--glass-border); border-radius: 40px; border-top-left-radius: 80px; border-top-right-radius: 80px;">
+        <div class="text-end mb-3 pb-3 pe-4" style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+          <i class="fas fa-dharmachakra fa-2x" style="color: rgba(255,255,255,0.1);"></i>
+        </div>
+
+        {% set max_row = seats | map(attribute='row') | max %}
+        <div class="d-flex flex-column gap-3">
+          {% for row in range(1, max_row + 1) %}
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex gap-2">
+              {% for seat in seats if seat.row == row and seat.number <= 2 %} <div>
+                <input type="checkbox" name="seats" value="{{ seat.id }}" id="seat-{{ seat.id }}" class="seat-checkbox"
+                  {% if seat.is_booked %}disabled{% endif %}>
+                <label for="seat-{{ seat.id }}" class="seat-label {% if seat.is_booked %}booked{% endif %}">
+                  {{ seat.id }}
+                </label>
+            </div>
+            {% endfor %}
+          </div>
+          <div style="width: 40px; text-align: center; color: rgba(255,255,255,0.08); font-size: 0.75rem;">{{ row }}
+          </div>
+          <div class="d-flex gap-2">
+            {% for seat in seats if seat.row == row and seat.number > 2 %}
+            <div>
+              <input type="checkbox" name="seats" value="{{ seat.id }}" id="seat-{{ seat.id }}" class="seat-checkbox" {%
+                if seat.is_booked %}disabled{% endif %}>
+              <label for="seat-{{ seat.id }}" class="seat-label {% if seat.is_booked %}booked{% endif %}">
+                {{ seat.id }}
+              </label>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+</div>
+</div>
+
+<!-- Booking Summary -->
+<div class="col-lg-5">
+  <div class="glass-card-static p-4" style="position: sticky; top: 100px;">
+    <h5 class="mb-4 fw-bold"><i class="fas fa-receipt me-2 text-accent"></i>Booking Summary</h5>
+
+    <div id="no-seats-msg" class="text-center py-4 text-secondary">
+      <i class="fas fa-hand-pointer fa-3x mb-3" style="opacity: 0.15;"></i>
+      <p>No seats selected yet.</p>
+      <p class="small">Click on available seats to select them.</p>
+    </div>
+
+    <div id="summary-details" style="display: none;">
+      <div class="d-flex justify-content-between mb-3 pb-2" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <span class="text-secondary">Selected (<span id="seat-count">0</span>)</span>
+        <span class="fw-bold" id="selected-seats-list"></span>
+      </div>
+      <div class="d-flex justify-content-between mb-2">
+        <span class="text-secondary">Base Fare</span>
+        <span>₹<span id="base-fare">0</span></span>
+      </div>
+      <div class="d-flex justify-content-between mb-3 pb-2" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <span class="text-secondary">Taxes & Fees (5%)</span>
+        <span>₹<span id="taxes">0</span></span>
+      </div>
+      <div class="d-flex justify-content-between mb-4 align-items-end">
+        <span class="h5 mb-0">Total</span>
+        <span class="h3 mb-0 gradient-text fw-bold">₹<span id="total-amount">0</span></span>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-glow w-100 py-3 fw-bold" id="proceed-btn" disabled>
+        Proceed to Book <i class="fas fa-arrow-right ms-2"></i>
+      </button>
+    </div>
+  </div>
+</div>
+</div>
+</form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const checkboxes = document.querySelectorAll('.seat-checkbox');
+    const summaryDetails = document.getElementById('summary-details');
+    const noSeatsMsg = document.getElementById('no-seats-msg');
+    const seatCountDisplay = document.getElementById('seat-count');
+    const seatsListDisplay = document.getElementById('selected-seats-list');
+    const baseFareDisplay = document.getElementById('base-fare');
+    const taxesDisplay = document.getElementById('taxes');
+    const totalAmountDisplay = document.getElementById('total-amount');
+    const proceedBtn = document.getElementById('proceed-btn');
+    const pricePerSeat = Number("{{ transport.price }}");
+    const taxRate = 0.05;
+
+    checkboxes.forEach(cb => cb.addEventListener('change', updateSummary));
+
+    function updateSummary() {
+      const selectedSeats = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+
+      if (selectedSeats.length > 0) {
+        noSeatsMsg.style.display = 'none';
+        summaryDetails.style.display = 'block';
+        proceedBtn.disabled = false;
+
+        seatCountDisplay.textContent = selectedSeats.length;
+        seatsListDisplay.textContent = selectedSeats.join(', ');
+
+        const baseFare = selectedSeats.length * pricePerSeat;
+        const taxes = Math.round(baseFare * taxRate);
+        const total = baseFare + taxes;
+
+        baseFareDisplay.textContent = baseFare.toLocaleString();
+        taxesDisplay.textContent = taxes.toLocaleString();
+        totalAmountDisplay.textContent = total.toLocaleString();
+      } else {
+        noSeatsMsg.style.display = 'block';
+        summaryDetails.style.display = 'none';
+        proceedBtn.disabled = true;
+      }
+    }
+  });
+</script>
+{% endblock %}
